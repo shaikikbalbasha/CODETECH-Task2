@@ -1,0 +1,204 @@
+/*The provided Java code implements an online banking system that allows users to
+manage their bank accounts. It includes an Account class to handle account details, 
+transactions, and balances, as well as a main class OnlineBankingSystem that provides a
+menu-driven interface for user interaction. Users can create accounts, deposit and withdraw funds,
+transfer money between accounts, and view transaction histories. The system uses a HashMap
+to store accounts, with account numbers as keys. Input validation is included to ensure
+proper transaction handling. The program operates in a loop until the user chooses to exit. */
+
+package codetech.java;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+class Account {
+    private String accountNumber;
+    private String accountHolder;
+    private double balance;
+    private List<String> transactionHistory;
+
+    public Account(String accountNumber, String accountHolder) {
+        this.accountNumber = accountNumber;
+        this.accountHolder = accountHolder;
+        this.balance = 0.0;
+        this.transactionHistory = new ArrayList<>();
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public String getAccountHolder() {
+        return accountHolder;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            transactionHistory.add("Deposited: " + amount);
+        } else {
+            System.out.println("Deposit amount must be positive.");
+        }
+    }
+
+    public void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            transactionHistory.add("Withdrew: " + amount);
+        } else {
+            System.out.println("Insufficient funds or invalid amount.");
+        }
+    }
+
+    public void transfer(Account targetAccount, double amount) {
+        if (amount > 0 && amount <= balance) {
+            withdraw(amount);
+            targetAccount.deposit(amount);
+            transactionHistory.add("Transferred: " + amount + " to " + targetAccount.getAccountHolder());
+            targetAccount.addTransaction("Received: " + amount + " from " + accountHolder);
+        } else {
+            System.out.println("Insufficient funds or invalid amount.");
+        }
+    }
+
+    public void viewTransactionHistory() {
+        System.out.println("Transaction History for " + accountHolder + ":");
+        for (String transaction : transactionHistory) {
+            System.out.println(transaction);
+        }
+    }
+
+    private void addTransaction(String transaction) {
+        transactionHistory.add(transaction);
+    }
+}
+
+public class OnlineBankingSystem {
+    private static Map<String, Account> accounts = new HashMap<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int choice;
+        do {
+            System.out.println("\nOnline Banking System");
+            System.out.println("1. Create Account");
+            System.out.println("2. Deposit Funds");
+            System.out.println("3. Withdraw Funds");
+            System.out.println("4. Transfer Funds");
+            System.out.println("5. View Transaction History");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    createAccount();
+                    break;
+                case 2:
+                    depositFunds();
+                    break;
+                case 3:
+                    withdrawFunds();
+                    break;
+                case 4:
+                    transferFunds();
+                    break;
+                case 5:
+                    viewTransactionHistory();
+                    break;
+                case 6:
+                    System.out.println("Exiting the system. Thank you!");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        } while (choice != 6);
+    }
+
+    private static void createAccount() {
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        System.out.print("Enter account holder name: ");
+        String accountHolder = scanner.nextLine();
+
+        if (!accounts.containsKey(accountNumber)) {
+            accounts.put(accountNumber, new Account(accountNumber, accountHolder));
+            System.out.println("Account created successfully!");
+        } else {
+            System.out.println("Account number already exists.");
+        }
+    }
+
+    private static void depositFunds() {
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        Account account = accounts.get(accountNumber);
+
+        if (account != null) {
+            System.out.print("Enter amount to deposit: ");
+            double amount = scanner.nextDouble();
+            account.deposit(amount);
+            System.out.println("Deposit successful!");
+        } else {
+            System.out.println("Account not found.");
+        }
+    }
+
+    private static void withdrawFunds() {
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        Account account = accounts.get(accountNumber);
+
+        if (account != null) {
+            System.out.print("Enter amount to withdraw: ");
+            double amount = scanner.nextDouble();
+            account.withdraw(amount);
+            System.out.println("Withdrawal successful!");
+        } else {
+            System.out.println("Account not found.");
+        }
+    }
+
+    private static void transferFunds() {
+        System.out.print("Enter your account number: ");
+        String fromAccountNumber = scanner.nextLine();
+        Account fromAccount = accounts.get(fromAccountNumber);
+
+        if (fromAccount != null) {
+            System.out.print("Enter target account number: ");
+            String toAccountNumber = scanner.nextLine();
+            Account toAccount = accounts.get(toAccountNumber);
+
+            if (toAccount != null) {
+                System.out.print("Enter amount to transfer: ");
+                double amount = scanner.nextDouble();
+                fromAccount.transfer(toAccount, amount);
+                System.out.println("Transfer successful!");
+            } else {
+                System.out.println("Target account not found.");
+            }
+        } else {
+            System.out.println("Your account not found.");
+        }
+    }
+
+    private static void viewTransactionHistory() {
+        System.out.print("Enter account number: ");
+        String accountNumber = scanner.nextLine();
+        Account account = accounts.get(accountNumber);
+
+        if (account != null) {
+            account.viewTransactionHistory();
+        } else {
+            System.out.println("Account not found.");
+        }
+    }
+}
